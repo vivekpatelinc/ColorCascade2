@@ -15,7 +15,7 @@ class ColorCascadeModel {
     
     private var currentColorIndex: Int = 0
     
-    private let colorOptions: [UIColor] = [.red, .green, .blue]
+    private let colorOptions: [UIColor] = [.red, .yellow, .blue, .purple, .orange, .green]
     
     private var timer: Timer?
     
@@ -36,6 +36,43 @@ class ColorCascadeModel {
         // Notify the delegate to update the falling color
         delegate?.gameDidUpdate(score: score, combo: combo)
     }
+    
+    private func determineRequiredColors(for shapeColor: UIColor) -> [UIColor] {
+        switch shapeColor {
+        case .purple:
+            // For a purple shape, require red and blue to be clicked
+            return [.red, .blue]
+        case .orange:
+            // For an orange shape, require red and yellow to be clicked
+            return [.red, .yellow]
+        case .green:
+            // For a green shape, require yellow and blue to be clicked
+            return [.yellow, .blue]
+        // Add cases for other shape colors and their required combinations...
+        case .red:
+            
+            return [.red]
+            
+        case .blue:
+            
+            return [.blue]
+            
+        case .yellow:
+            
+            return [.yellow]
+            
+        default:
+            // For unknown or unexpected colors, return an empty array
+            return []
+        }
+    }
+    
+    public func isMatchingColor(_ tappedColor: UIColor, _ currentFallingShapeColor: UIColor) -> Bool {
+        let requiredColors = determineRequiredColors(for: currentFallingShapeColor)
+        return requiredColors.contains(tappedColor)
+    }
+
+
     
     func didSelectColor(at index: Int) {
         // Check if the selected color matches the current falling color

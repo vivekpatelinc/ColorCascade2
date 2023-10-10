@@ -11,6 +11,7 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
     
     private var fallingShapeView: UIView!
     private var colorOptions: [UIView] = []
+    private var fallingcolorOptions: [UIColor] = [.red, .yellow, .blue]
     private var scoreLabel: UILabel!
     private var comboLabel: UILabel!
     private var bottomColorView: UIView!
@@ -22,10 +23,10 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
 
 
     // Array of possible colors for falling shapes
-    private let shapeColors: [UIColor] = [.red, .green, .blue]
+    private let shapeColors: [UIColor] = [.red, .yellow, .blue]
     
     // Property to store the current falling shape color
-    private var currentFallingShapeColor: UIColor = .clear
+    public var currentFallingShapeColor: UIColor = .clear
     
     private var score: Int = 0
     private var combo: Int = 0
@@ -117,7 +118,7 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         scoreLabel.frame = CGRect(x: 10, y: 70, width: viewWidth - 20, height: 30)
         comboLabel.frame = CGRect(x: 10, y: 100, width: viewWidth - 20, height: 30)
         bottomColorView.frame = CGRect(x: viewWidth - shapeSize, y: viewHeight - shapeSize, width: shapeSize, height: shapeSize)
-        startButton.frame = CGRect(x: (viewWidth - 120) / 2, y: viewHeight - 100, width: 120, height: 40)
+        startButton.frame = CGRect(x: (viewWidth - 120) / 2, y: viewHeight / 2 , width: 120, height: 40)
     }
 
     
@@ -126,7 +127,7 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         fallingShapeView.frame.origin.y = -shapeSize
 
         // Randomly select a color for the falling shape
-        currentFallingShapeColor = shapeColors.randomElement() ?? .clear
+        currentFallingShapeColor = fallingcolorOptions.randomElement() ?? .clear
         fallingShapeView.backgroundColor = currentFallingShapeColor
 
         UIView.animate(withDuration: 2.0, delay: 0, options: .curveLinear, animations: { [weak self] in
@@ -161,6 +162,8 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         model.endGame() // Notify the model that the game has ended
         score = 0
         combo = 0
+        fallingcolorOptions = [.red, .yellow, .blue]
+
     }
     
     // Handle the start button tap
@@ -178,17 +181,20 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         guard let index = colorOptions.firstIndex(of: sender.view!) else { return }
         let tappedColor = shapeColors[index]
 
-        if tappedColor == currentFallingShapeColor {
+        if model.isMatchingColor(tappedColor, currentFallingShapeColor) {
             // Handle a correct color match (e.g., update score and combo)
             score += 1
             combo += 1
-
+            if score > 5 && fallingcolorOptions.count == 3 {
+                fallingcolorOptions += [.purple, .orange, .green]
+            }
             shapeTapped = true
 
 
         } else {
             // Handle an incorrect color match (if needed)
             combo = 0
+            fallingcolorOptions = [.red, .yellow, .blue]
             endGame()
         }
 
