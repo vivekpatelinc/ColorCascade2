@@ -9,10 +9,14 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
     private var backgroundMusicPlayer: AVAudioPlayer?
     var currentAlertController: UIAlertController?
     var gracePeriodTimer: Timer?
+    var fadeTimer: Timer?
+    let fadeDuration: TimeInterval = 2.0  // Adjust the duration as needed
 
 
-    
-    private let shapeSize: CGFloat = 50
+
+    private var baseShapeView = UIView()
+    //private var fallingShapeView = FallingShapeView()
+    private let shapeSize: CGFloat = 60
     private var fallingShapeView = UIView()
     private var colorOptions = [UIView]()
     private var fallingColorOptions: [UIColor] = [.red, .yellow, .blue]
@@ -36,6 +40,7 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
     
     private func setupUI() {
         view.backgroundColor = .white
+        setupBaseShapeView()
         setupFallingShapeView()
         setupColorOptionViews()
         setupLabels()
@@ -43,13 +48,31 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         setupStartButton()
     }
     
+    private func setupBaseShapeView() {
+            // Set the frame, background color, and rounding for the base shape view
+            baseShapeView.frame = CGRect(x: (view.bounds.width - shapeSize) / 2,
+                                         y: view.bounds.height - shapeSize - 20,
+                                         width: shapeSize,
+                                         height: shapeSize)
+            baseShapeView.backgroundColor = .white  // Or any color you prefer
+            baseShapeView.layer.cornerRadius = shapeSize / 2
+            baseShapeView.clipsToBounds = true
+            
+            view.addSubview(baseShapeView)
+        }
+    
     private func setupFallingShapeView() {
-        fallingShapeView.frame = CGRect(x: (view.bounds.width - shapeSize) / 2, y: -shapeSize, width: shapeSize, height: shapeSize)
-        fallingShapeView.backgroundColor = model.shapeColors.randomElement() ?? .clear
-        fallingShapeView.layer.cornerRadius = shapeSize / 2
-        fallingShapeView.clipsToBounds = true
-        view.addSubview(fallingShapeView)
-    }
+            // Set the frame, initial background color, and rounding for the falling shape view
+            fallingShapeView.frame = CGRect(x: (view.bounds.width - shapeSize) / 2,
+                                            y: -shapeSize,
+                                            width: shapeSize,
+                                            height: shapeSize)
+            fallingShapeView.backgroundColor = model.shapeColors.randomElement() ?? .clear
+            fallingShapeView.layer.cornerRadius = shapeSize / 2
+            fallingShapeView.clipsToBounds = true
+            
+            view.addSubview(fallingShapeView)
+        }
     
     private func setupColorOptionViews() {
         for color in model.shapeColors {
@@ -137,6 +160,10 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         isGameActive = true
         startFallingAnimation()
         model.startGame()
+        
+        playBackgroundMusic()  // Start the background music
+        startFadeIn()
+
     }
     
     private func startFallingAnimation() {
@@ -183,6 +210,7 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         gracePeriodTimer = nil  // Reset the timer
         
         if model.checkSelectedColors(for: currentFallingShapeColor) {
+            animatePop(for: fallingShapeView)  // Add this line to trigger the pop animation
             score += 1
             combo += 1
             shapeTapped = true
@@ -204,12 +232,61 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         comboLabel.text = "Combo x\(combo)"
     }
     
+    func playBackgroundMusic() {
+        guard let url = Bundle.main.url(forResource: "background_music", withExtension: "mp3") else {
+            print("Could not find background music file.")
+            return
+        }
+        
+        do {
+            backgroundMusicPlayer = try AVAudioPlayer(contentsOf: url)
+            backgroundMusicPlayer?.numberOfLoops = -1  // Loop the music indefinitely
+            backgroundMusicPlayer?.volume = 0  // Set initial volume to 0
+            backgroundMusicPlayer?.prepareToPlay()
+            backgroundMusicPlayer?.play()
+        } catch let error {
+            print("Error loading or playing background music: \(error.localizedDescription)")
+        }
+    }
+    
+    func stopBackgroundMusic() {
+        backgroundMusicPlayer?.stop()
+        backgroundMusicPlayer?.currentTime = 0  // Reset the playback time to the beginning
+    }
+    
+    func startFadeIn() {
+        fadeTimer?.invalidate()  // Cancel any existing timer
+        fadeTimer = Timer.scheduledTimer(timeInterval: 0.03, target: self, selector: #selector(fadeIn), userInfo: nil, repeats: true)
+    }
+
+
+    @objc func fadeIn() {
+        guard let player = backgroundMusicPlayer else { return }
+        
+        if player.volume < 1.0 {
+            player.volume += Float(0.05 / (fadeDuration / 0.05))
+        } else {
+            fadeTimer?.invalidate()
+        }
+    }
+    
+    func animatePop(for view: UIView) {
+        UIView.animate(withDuration: 0.3, animations: {
+            view.transform = CGAffineTransform(scaleX: 2, y: 2)
+        }) { _ in
+            UIView.animate(withDuration: 0.3) {
+                view.transform = CGAffineTransform.identity
+            }
+        }
+    }
+    
     public func endGame() {
         isGameActive = false
         model.endGame()
         score = 0
         combo = 0
         fallingColorOptions = [.red, .yellow, .blue]
+        stopBackgroundMusic()  // Stop the background music
     }
     
     func gameDidUpdate(score: Int, combo: Int) {}

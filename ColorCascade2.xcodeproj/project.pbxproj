@@ -58,7 +58,7 @@
 		01CC25232AD489CF001952C6 /* ColorCascadeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorCascadeViewController.swift; sourceTree = "<group>"; };
 		01CC25272AD4B5CA001952C6 /* background_music.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = background_music.mp3; sourceTree = "<group>"; };
 		01CC25292AD4B958001952C6 /* Explosion.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Explosion.sks; sourceTree = "<group>"; };
-		01CC252A2AD4B958001952C6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		01CC252A2AD4B958001952C6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = ../Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,8 +89,6 @@
 		01CC24E32AD488BD001952C6 = {
 			isa = PBXGroup;
 			children = (
-				01CC25292AD4B958001952C6 /* Explosion.sks */,
-				01CC252A2AD4B958001952C6 /* Assets.xcassets */,
 				01CC24EE2AD488BD001952C6 /* ColorCascade2 */,
 				01CC25052AD488C2001952C6 /* ColorCascade2Tests */,
 				01CC250F2AD488C2001952C6 /* ColorCascade2UITests */,
@@ -111,6 +109,8 @@
 		01CC24EE2AD488BD001952C6 /* ColorCascade2 */ = {
 			isa = PBXGroup;
 			children = (
+				01CC25292AD4B958001952C6 /* Explosion.sks */,
+				01CC252A2AD4B958001952C6 /* Assets.xcassets */,
 				01CC24EF2AD488BE001952C6 /* AppDelegate.swift */,
 				01CC24F12AD488BE001952C6 /* SceneDelegate.swift */,
 				01CC251F2AD48956001952C6 /* ColorCascadeModel.swift */,
