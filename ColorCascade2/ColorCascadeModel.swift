@@ -14,7 +14,8 @@ class ColorCascadeModel {
     private var combo = 0
     private var currentColorIndex = 0
     private var timer: Timer?
-    
+    public var selectedColors: Set<UIColor> = []
+
     public let shapeColors: [UIColor] = [.red, .yellow, .blue]
     
     public func startGame() {
@@ -47,20 +48,19 @@ class ColorCascadeModel {
     
     public func isMatchingColor(_ tappedColor: UIColor, _ currentFallingShapeColor: UIColor) -> Bool {
         let requiredColors = determineRequiredColors(for: currentFallingShapeColor)
-        return requiredColors.contains(tappedColor)
+        selectedColors.insert(tappedColor)
+        return selectedColors.isSuperset(of: requiredColors)
+    }
+
+    public func addSelectedColor(_ color: UIColor) {
+        selectedColors.insert(color)
     }
     
-    public func didSelectColor(at index: Int) {
-        if index == currentColorIndex {
-            score += 1
-            combo += 1
-        } else {
-            endGame()
-            return
-        }
-        
-        delegate?.gameDidUpdate(score: score, combo: combo)
-        restartGameTimer()
+    public func checkSelectedColors(for fallingShapeColor: UIColor) -> Bool {
+        let requiredColors = determineRequiredColors(for: fallingShapeColor)
+        let isMatching = selectedColors.isSuperset(of: requiredColors)
+        selectedColors.removeAll()  // Reset selected colors for the next falling shape
+        return isMatching
     }
     
     private func restartGameTimer() {

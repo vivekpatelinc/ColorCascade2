@@ -7,6 +7,10 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
     private var model = ColorCascadeModel()
     private var soundManager = SoundManager()
     private var backgroundMusicPlayer: AVAudioPlayer?
+    var currentAlertController: UIAlertController?
+    var gracePeriodTimer: Timer?
+
+
     
     private let shapeSize: CGFloat = 50
     private var fallingShapeView = UIView()
@@ -18,7 +22,7 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
     private var startButton = UIButton(type: .system)
     private var isGameActive: Bool = false
     private var shapeTapped: Bool = false
-    private var currentFallingShapeColor: UIColor = .clear
+    public var currentFallingShapeColor: UIColor = .clear
     private var score: Int = 0
     private var combo: Int = 0
     
@@ -161,14 +165,30 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         guard isGameActive else { return }
         guard let index = colorOptions.firstIndex(of: sender.view!) else { return }
         let tappedColor = model.shapeColors[index]
-
-        if model.isMatchingColor(tappedColor, currentFallingShapeColor) {
+        
+        model.addSelectedColor(tappedColor)
+        
+        if gracePeriodTimer == nil {
+            gracePeriodTimer = Timer.scheduledTimer(
+                timeInterval: 0.1,
+                target: self,
+                selector: #selector(gracePeriodExpired),
+                userInfo: nil,
+                repeats: false
+            )
+        }
+    }
+    
+    @objc func gracePeriodExpired() {
+        gracePeriodTimer = nil  // Reset the timer
+        
+        if model.checkSelectedColors(for: currentFallingShapeColor) {
             score += 1
             combo += 1
+            shapeTapped = true
             if score > 5 && fallingColorOptions.count == 3 {
                 fallingColorOptions += [.purple, .orange, .green]
             }
-            shapeTapped = true
         } else {
             combo = 0
             fallingColorOptions = [.red, .yellow, .blue]
@@ -195,10 +215,15 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
     func gameDidUpdate(score: Int, combo: Int) {}
     
     func gameDidEnd() {
-        let alert = UIAlertController(title: "Game Over", message: "Your Score: \(score)", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self] _ in
-            self?.startButton.isHidden = false
-        }))
-        present(alert, animated: true, completion: nil)
-    }
+            // Dismiss the current alert controller if there is one
+            currentAlertController?.dismiss(animated: false, completion: nil)
+            
+            let alert = UIAlertController(title: "Game Over", message: "Your Score: \(score)", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak self] _ in
+                self?.startButton.isHidden = false
+            }))
+            
+            present(alert, animated: true, completion: nil)
+            currentAlertController = alert
+        }
 }
