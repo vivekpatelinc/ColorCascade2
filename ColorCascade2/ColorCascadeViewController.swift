@@ -86,22 +86,6 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         view.addSubview(fallingShapeView)
     }
     
-    func createExplosion(at point: CGPoint) {
-        let explosionView = UIView(frame: CGRect(x: point.x - shapeSize/2, y: point.y - shapeSize/2, width: shapeSize, height: shapeSize))
-        explosionView.backgroundColor = activeFallingShapeView?.backgroundColor
-        explosionView.layer.cornerRadius = shapeSize / 2
-        view.addSubview(explosionView)
-        
-        UIView.animate(withDuration: 0.5, animations: {
-            explosionView.transform = CGAffineTransform(scaleX: 5, y: 5)  // Scale up
-            explosionView.alpha = 0  // Fade out
-        }) { _ in
-            explosionView.removeFromSuperview()  // Remove from hierarchy
-        }
-    }
-
-
-    
     private func setupColorOptionViews() {
         for color in model.shapeColors {
             let optionView = createColorOptionView(color: color)
@@ -135,8 +119,11 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
     private func setupBottomColorView() {
         bottomColorView.layer.cornerRadius = shapeSize / 2
         bottomColorView.clipsToBounds = true
+        bottomColorView.backgroundColor = .clear  // Set the background color to clear
+        baseShapeView.isHidden = true  // Hide the view
         view.addSubview(bottomColorView)
     }
+
     
     private func setupStartButton() {
         startButton.setTitle("Start Game", for: .normal)
@@ -161,7 +148,7 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
 
         for (index, optionView) in colorOptions.enumerated() {
             let xPosition = startX + (shapeSize + spacing) * CGFloat(index)
-            optionView.frame = CGRect(x: xPosition, y: viewHeight - shapeSize - 60, width: shapeSize, height: shapeSize)
+            optionView.frame = CGRect(x: xPosition, y: viewHeight - shapeSize - 150, width: shapeSize, height: shapeSize)
         }
     }
     
@@ -242,12 +229,16 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         }
     }
     
+    func loadExplosionEmitter() -> SKEmitterNode? {
+        return SKEmitterNode(fileNamed: "spark")
+    }
+
     @objc func gracePeriodExpired() {
         gracePeriodTimer = nil  // Reset the timer
         
         if model.checkSelectedColors(for: currentFallingShapeColor) {
-            let explosionPoint = activeFallingShapeView?.center ?? CGPoint.zero
-            createExplosion(at: explosionPoint)
+            let explosionPoint = CGPoint(x: skView.bounds.midX, y: 0)
+                    createExplosion(at: explosionPoint, color: currentFallingShapeColor)
             score += 1
             combo += 1
             shapeTapped = true
@@ -259,10 +250,33 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
             fallingColorOptions = [.red, .yellow, .blue]
             endGame()
         }
-
+        
         updateLabels()
         startFallingAnimation()
     }
+
+    func createExplosion(at point: CGPoint, color: UIColor) {
+        guard let explosion = SKEmitterNode(fileNamed: "spark") else {
+            print("Failed to load the explosion emitter.")
+            return
+        }
+        
+        explosion.position = point
+        explosion.particleColor = color
+        explosion.particleColorBlendFactor = 1.0
+        explosion.particleColorSequence = nil
+        skScene.addChild(explosion)
+        
+        let wait = SKAction.wait(forDuration: 0.5)
+        let removeExplosion = SKAction.run { explosion.removeFromParent() }
+        let sequence = SKAction.sequence([wait, removeExplosion])
+        
+        explosion.run(sequence)
+    }
+
+
+
+
     
     private func updateLabels() {
         scoreLabel.text = "Score: \(score)"

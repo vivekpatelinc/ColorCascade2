@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		01B216752AD9D9C4001D7438 /* explosion.sks in Resources */ = {isa = PBXBuildFile; fileRef = 01B216742AD9D9C4001D7438 /* explosion.sks */; };
+		01B216772AD9DCCB001D7438 /* spark.sks in Resources */ = {isa = PBXBuildFile; fileRef = 01B216762AD9DCCB001D7438 /* spark.sks */; };
+		01B216792AD9E675001D7438 /* spark2.sks in Resources */ = {isa = PBXBuildFile; fileRef = 01B216782AD9E675001D7438 /* spark2.sks */; };
 		01CC24F02AD488BE001952C6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CC24EF2AD488BE001952C6 /* AppDelegate.swift */; };
 		01CC24F22AD488BE001952C6 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CC24F12AD488BE001952C6 /* SceneDelegate.swift */; };
 		01CC24F72AD488BE001952C6 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 01CC24F52AD488BE001952C6 /* Main.storyboard */; };
@@ -41,7 +42,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		01B216742AD9D9C4001D7438 /* explosion.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = explosion.sks; sourceTree = "<group>"; };
+		01B216762AD9DCCB001D7438 /* spark.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = spark.sks; sourceTree = "<group>"; };
+		01B216782AD9E675001D7438 /* spark2.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = spark2.sks; sourceTree = "<group>"; };
 		01CC24EC2AD488BD001952C6 /* ColorCascade2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ColorCascade2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		01CC24EF2AD488BE001952C6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		01CC24F12AD488BE001952C6 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -115,7 +117,8 @@
 				01CC251F2AD48956001952C6 /* ColorCascadeModel.swift */,
 				01CC25212AD4896F001952C6 /* SoundManager.swift */,
 				01CC25232AD489CF001952C6 /* ColorCascadeViewController.swift */,
-				01B216742AD9D9C4001D7438 /* explosion.sks */,
+				01B216762AD9DCCB001D7438 /* spark.sks */,
+				01B216782AD9E675001D7438 /* spark2.sks */,
 				01CC24F52AD488BE001952C6 /* Main.storyboard */,
 				01CC25272AD4B5CA001952C6 /* background_music.mp3 */,
 				01CC24F82AD488C1001952C6 /* Assets.xcassets */,
@@ -246,10 +249,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01B216792AD9E675001D7438 /* spark2.sks in Resources */,
 				01CC24FC2AD488C1001952C6 /* LaunchScreen.storyboard in Resources */,
+				01B216772AD9DCCB001D7438 /* spark.sks in Resources */,
 				01CC24F92AD488C1001952C6 /* Assets.xcassets in Resources */,
 				01CC25282AD4B5CA001952C6 /* background_music.mp3 in Resources */,
-				01B216752AD9D9C4001D7438 /* explosion.sks in Resources */,
 				01CC252C2AD4B958001952C6 /* Assets.xcassets in Resources */,
 				01CC24F72AD488BE001952C6 /* Main.storyboard in Resources */,
 			);
