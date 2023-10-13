@@ -11,13 +11,16 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
     var gracePeriodTimer: Timer?
     var fadeTimer: Timer?
     let fadeDuration: TimeInterval = 2.0  // Adjust the duration as needed
-
+    var skView: SKView!
+    var skScene: SKScene!
 
 
     private var baseShapeView = UIView()
     //private var fallingShapeView = FallingShapeView()
     private let shapeSize: CGFloat = 60
-    private var fallingShapeView = UIView()
+    private var fallingShapeView1 = UIView()
+    private var fallingShapeView2 = UIView()
+    private var activeFallingShapeView: UIView?
     private var colorOptions = [UIView]()
     private var fallingColorOptions: [UIColor] = [.red, .yellow, .blue]
     private var scoreLabel = UILabel()
@@ -33,6 +36,18 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        skView = SKView(frame: view.bounds)
+        skView.allowsTransparency = true  // Allow transparent background
+        view.addSubview(skView)
+        view.sendSubviewToBack(skView)  // Ensure SKView is at the back
+
+        skScene = SKScene(size: skView.bounds.size)
+        skScene.scaleMode = .resizeFill  // Ensure scene resizes to fill the SKView
+        skScene.backgroundColor = .clear  // Clear background color
+        skView.presentScene(skScene)
+        skView.isUserInteractionEnabled = false  // Disable user interactions on the SKView
+
         setupUI()
         model.delegate = self
         soundManager = SoundManager()
@@ -41,12 +56,14 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
     private func setupUI() {
         view.backgroundColor = .white
         setupBaseShapeView()
-        setupFallingShapeView()
+        setupFallingShapeView(fallingShapeView1)
+        setupFallingShapeView(fallingShapeView2)
         setupColorOptionViews()
         setupLabels()
         setupBottomColorView()
         setupStartButton()
     }
+
     
     private func setupBaseShapeView() {
             // Set the frame, background color, and rounding for the base shape view
@@ -61,18 +78,29 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
             view.addSubview(baseShapeView)
         }
     
-    private func setupFallingShapeView() {
-            // Set the frame, initial background color, and rounding for the falling shape view
-            fallingShapeView.frame = CGRect(x: (view.bounds.width - shapeSize) / 2,
-                                            y: -shapeSize,
-                                            width: shapeSize,
-                                            height: shapeSize)
-            fallingShapeView.backgroundColor = model.shapeColors.randomElement() ?? .clear
-            fallingShapeView.layer.cornerRadius = shapeSize / 2
-            fallingShapeView.clipsToBounds = true
-            
-            view.addSubview(fallingShapeView)
+    private func setupFallingShapeView(_ fallingShapeView: UIView) {
+        fallingShapeView.frame = CGRect(x: (view.bounds.width - shapeSize) / 2, y: -shapeSize, width: shapeSize, height: shapeSize)
+        fallingShapeView.backgroundColor = model.shapeColors.randomElement() ?? .clear
+        fallingShapeView.layer.cornerRadius = shapeSize / 2
+        fallingShapeView.clipsToBounds = true
+        view.addSubview(fallingShapeView)
+    }
+    
+    func createExplosion(at point: CGPoint) {
+        let explosionView = UIView(frame: CGRect(x: point.x - shapeSize/2, y: point.y - shapeSize/2, width: shapeSize, height: shapeSize))
+        explosionView.backgroundColor = activeFallingShapeView?.backgroundColor
+        explosionView.layer.cornerRadius = shapeSize / 2
+        view.addSubview(explosionView)
+        
+        UIView.animate(withDuration: 0.5, animations: {
+            explosionView.transform = CGAffineTransform(scaleX: 5, y: 5)  // Scale up
+            explosionView.alpha = 0  // Fade out
+        }) { _ in
+            explosionView.removeFromSuperview()  // Remove from hierarchy
         }
+    }
+
+
     
     private func setupColorOptionViews() {
         for color in model.shapeColors {
@@ -156,6 +184,7 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
     }
     
     @objc private func startButtonTapped() {
+        activeFallingShapeView = fallingShapeView1
         startButton.isHidden = true
         isGameActive = true
         startFallingAnimation()
@@ -167,13 +196,20 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
     }
     
     private func startFallingAnimation() {
-        fallingShapeView.frame.origin.y = -shapeSize
-        currentFallingShapeColor = fallingColorOptions.randomElement() ?? .clear
-        fallingShapeView.backgroundColor = currentFallingShapeColor
+        // Determine the active falling shape view
+        if activeFallingShapeView == fallingShapeView1 {
+            activeFallingShapeView = fallingShapeView2
+        } else {
+            activeFallingShapeView = fallingShapeView1
+        }
 
-        UIView.animate(withDuration: 2.0, delay: 0, options: .curveLinear, animations: { [weak self] in
+        activeFallingShapeView?.frame.origin.y = -shapeSize
+        currentFallingShapeColor = fallingColorOptions.randomElement() ?? .clear
+        activeFallingShapeView?.backgroundColor = currentFallingShapeColor
+
+        UIView.animate(withDuration: 2.0, delay: 0.5, options: .curveLinear, animations: { [weak self] in
             guard let self = self else { return }
-            self.fallingShapeView.frame.origin.y = self.view.bounds.height
+            self.activeFallingShapeView?.frame.origin.y = self.view.bounds.height
         }) { [weak self] (_) in
             self?.shapeReachedBottom()
         }
@@ -210,7 +246,8 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         gracePeriodTimer = nil  // Reset the timer
         
         if model.checkSelectedColors(for: currentFallingShapeColor) {
-            animatePop(for: fallingShapeView)  // Add this line to trigger the pop animation
+            let explosionPoint = activeFallingShapeView?.center ?? CGPoint.zero
+            createExplosion(at: explosionPoint)
             score += 1
             combo += 1
             shapeTapped = true
@@ -270,15 +307,6 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         }
     }
     
-    func animatePop(for view: UIView) {
-        UIView.animate(withDuration: 0.3, animations: {
-            view.transform = CGAffineTransform(scaleX: 2, y: 2)
-        }) { _ in
-            UIView.animate(withDuration: 0.3) {
-                view.transform = CGAffineTransform.identity
-            }
-        }
-    }
     
     public func endGame() {
         isGameActive = false
