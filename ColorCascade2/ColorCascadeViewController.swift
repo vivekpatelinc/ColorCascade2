@@ -238,7 +238,9 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         
         if model.checkSelectedColors(for: currentFallingShapeColor) {
             let explosionPoint = CGPoint(x: skView.bounds.midX, y: 0)
-                    createExplosion(at: explosionPoint, color: currentFallingShapeColor)
+            activeFallingShapeView?.isHidden = true  // Hide the falling shape
+            createExplosion(at: explosionPoint, color: currentFallingShapeColor, shape: activeFallingShapeView ?? UIView())
+            
             score += 1
             combo += 1
             shapeTapped = true
@@ -255,7 +257,8 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         startFallingAnimation()
     }
 
-    func createExplosion(at point: CGPoint, color: UIColor) {
+
+    func createExplosion(at point: CGPoint, color: UIColor, shape: UIView) {
         guard let explosion = SKEmitterNode(fileNamed: "spark") else {
             print("Failed to load the explosion emitter.")
             return
@@ -267,17 +270,15 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         explosion.particleColorSequence = nil
         skScene.addChild(explosion)
         
-        let wait = SKAction.wait(forDuration: 0.5)
+        let wait = SKAction.wait(forDuration: 1)
         let removeExplosion = SKAction.run { explosion.removeFromParent() }
         let sequence = SKAction.sequence([wait, removeExplosion])
         
-        explosion.run(sequence)
+        explosion.run(sequence) {
+            shape.isHidden = false  // Unhide the falling shape when the explosion animation has finished
+        }
     }
 
-
-
-
-    
     private func updateLabels() {
         scoreLabel.text = "Score: \(score)"
         comboLabel.text = "Combo x\(combo)"
@@ -329,6 +330,9 @@ class ColorCascadeViewController: UIViewController, ColorCascadeModelDelegate {
         combo = 0
         fallingColorOptions = [.red, .yellow, .blue]
         stopBackgroundMusic()  // Stop the background music
+        
+        fallingShapeView1.layer.removeAllAnimations()
+        fallingShapeView2.layer.removeAllAnimations()
     }
     
     func gameDidUpdate(score: Int, combo: Int) {}
